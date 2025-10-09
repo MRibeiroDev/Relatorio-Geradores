@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Relatório de Inspeção</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+    .header { display: flex; justify-content: space-between; align-items: center; 
+              background-color: #007f3e; padding: 15px; border-radius: 8px; color: #fff; }
+    .header img { height: 60px; }
+    .header .header-right { text-align: right; }
+    .header .header-right h1 { margin: 0; font-size: 24px; font-weight: bold; }
+    .header .header-right p { margin: 2px 0; font-size: 14px; }
+
+    .report-title { margin-top: 20px; background-color: #e6f2eb; padding: 10px 15px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
+    .report-title select { padding: 5px; font-size: 14px; }
+    .equipment-name { text-align: center; font-weight: bold; font-size: 18px; margin-top: 10px; color: #007f3e; }
+
+    .equipment-info { background-color: #ffffff; margin-top: 10px; border-radius: 8px; padding: 10px; border-left: 6px solid #007f3e; display: flex; flex-wrap: wrap; gap: 15px; }
+    .equipment-info label { width: 130px; font-weight: bold; }
+    .equipment-info input { flex: 1; padding: 5px; }
+
+    .section { background-color: #ffffff; margin-top: 15px; border-radius: 8px; padding: 10px; border-left: 6px solid #007f3e; }
+    .section h2 { padding: 8px; border-radius: 4px; font-size: 16px; background: linear-gradient(90deg, #d9f0e1 0%, #ffffff 100%); display:flex; justify-content: space-between; align-items: center; }
+    .item { display: flex; justify-content: space-between; margin: 4px 0; flex-wrap: wrap; }
+    select { margin-left: 5px; }
+    input[type="text"], input[type="number"] { width: 150px; margin-left: 5px; }
+
+    .progress-bar { height: 10px; background-color: #d9f0e1; border-radius: 5px; margin-top: 5px; }
+    .progress-fill { height: 10px; background-color: #007f3e; width: 0%; border-radius: 5px; transition: width 0.3s; }
+
+    .signature-container { margin-top: 20px; }
+    .signature { border: 2px solid #000; height: 100px; position: relative; margin-bottom: 5px; touch-action: none; border-radius: 4px; }
+    .legend { text-align: center; margin-bottom: 15px; font-size: 14px; }
+
+    button { margin-top: 15px; padding: 10px 15px; background-color: #007f3e; color: white; border: none; border-radius: 5px; cursor: pointer; }
+
+    .footer { margin-top: 30px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #555; }
+    .footer img { height: 30px; }
+</style>
+</head>
+<body>
+<div id="relatorio">
+    <!-- CABEÇALHO -->
+    <div class="header">
+        <img src="logo.png" alt="Logo Grupo São Lourenço">
+        <div class="header-right">
+            <h1>Grupo São Lourenço</h1>
+            <p>A Rua Lourenço Chohfi, Jardim São Francisco, CEP 13388-160</p>
+        </div>
+    </div>
+
+    <!-- RELATÓRIO E EQUIPAMENTO -->
+    <div class="report-title">
+        <span>Relatório de Inspeção no Equipamento:</span>
+        <select id="equipamentoSelect" onchange="atualizarNomeEquipamento()">
+            <option value="">Selecione</option>
+            <option value="Gerador 400 Kva">Gerador 400 Kva</option>
+            <option value="Gerador de 100 Kva">Gerador de 100 Kva</option>
+            <option value="Bomba Incêndio">Bomba Incêndio</option>
+        </select>
+    </div>
+    <div id="equipamentoNome" class="equipment-name"></div>
+
+    <!-- INFORMAÇÕES DO EQUIPAMENTO -->
+    <div class="equipment-info">
+        <div><label>Ativo:</label><input type="text" placeholder="Digite aqui"></div>
+        <div><label>Nome:</label><input type="text" placeholder="Digite aqui"></div>
+        <div><label>Marca:</label><input type="text" placeholder="Digite aqui"></div>
+        <div><label>Modelo:</label><input type="text" placeholder="Digite aqui"></div>
+        <div><label>Patrimônio / Nº Série:</label><input type="text" placeholder="Digite aqui"></div>
+    </div>
+
+    <!-- SEÇÕES DE INSPEÇÃO COMPLETAS -->
+    <script>
+        const itemsData = [
+            {section: "1.00 Inspeção no Sistema de Arrefecimento", items:[
+                "1.01 - Verificar e corrigir o nível do líquido de arrefecimento",
+                "1.02 - Registrar a temperatura do líquido de arrefecimento (Cº)",
+                "1.03 - Verificar vestígio de vazamento",
+                "1.04 - Verificar colmeia do radiador (obstrução ou vazamento)",
+                "1.05 - Verificar o ventilador (trincas e rebites)"
+            ]},
+            {section: "2.00 Lubrificação", items:[
+                "2.01 - Verificar o nível de óleo lubrificante",
+                "2.02 - Verificar mangueiras e abraçadeiras do sistema de lubrificação",
+                "2.03 - Inspecione os vestígios de vazamento de óleo"
+            ]},
+            {section: "3.00 Combustível", items:[
+                "3.01 - Registrar Nível de combustível no tanque diário (%)",
+                "3.02 - Inspecione conexões das mangueiras, abraçadeiras e vestígio de vazamento",
+                "3.03 - Verifique o estado de instalação e conservação do tanque diário",
+                "3.04 - Inspecione o pré-filtro na linha de diesel da bomba",
+                "3.05 - Verificar os filtros de combustível racor (quando aplicado)",
+                "3.06 - Drenar sedimentos do tanque",
+                "3.07 - Drenar sedimentos dos filtros de combustível e racor"
+            ]},
+            {section: "4.00 Admissão", items:[
+                "4.01 - Verificar e testar indicador de restrição do filtro de ar",
+                "4.02 - Verificar e limpar o filtro de ar",
+                "4.03 - Verificar abraçadeiras do sistema de admissão"
+            ]},
+            {section: "5.00 Geral", items:[
+                "5.01 - Verificar os amortecedores de vibração",
+                "5.02 - Verificar obstrução da passagem de ar internas e externas",
+                "5.03 - Verificar o alinhamento do segmento e condições gerais do escapamento",
+                "5.04 - Verificar/Lubrificar o mecanismo do atuador/solenoide",
+                "5.05 - Verificar limpeza gerais na sala, GMG ou carenagem"
+            ]},
+            {section: "6.00 Inspeção Elétrica Motor", items:[
+                "6.01 - Verificar o circuito e funcionamento do pré-aquecimento",
+                "6.02 - Verificar as conexões elétricas do motor (sensor pressão, temperatura ...)",
+                "6.03 - Registrar densidade água ou verificar indicador da bateria (quando selada)",
+                "6.04 - Verificar conexão dos cabos da bateria",
+                "6.05 - Inspecionar limpeza e aplicar vaselina nos terminais da bateria"
+            ]},
+            {section: "7.00 Gerador", items:[
+                "7.01 - Verificar conexões elétricas do gerador (cabos de potência e referências)",
+                "7.02 - Verificar conexões elétricas do TC",
+                "7.03 - Verificar conexões do RAT",
+                "7.04 - Inspecionar cabos dentro da bazeta quanto a danos por atrito"
+            ]},
+            {section: "8.00 Medição, Registro e Simulação", items:[
+                "8.01 - Registrar tensão e corrente de flutuação do retificador",
+                "8.02 - Registrar mínima tensão de bateria na partida (VDC)",
+                "8.03 - Registrar tensão e corrente de carga do retificador (VDC-A)",
+                "8.04 - Medir e registrar tensão e corrente do alternador (VDC-A)",
+                "8.05 - Registrar tensão do Gerador (VAB-VBC-VCA)",
+                "8.06 - Registrar frequência do Gerador (HZ)",
+                "8.07 - Registrar potência acumulada (KWh)",
+                "8.08 - Medir tensão terra/neutro (VAC)",
+                "8.09 - Medir tensão da bateria auxiliar na USCA (VDC)",
+                "8.10 - Medir sinal de pick-up (VAC)",
+                "8.11 - Registrar corrente de reativos nas 3 fases (A) no sincronismo a vazio",
+                "8.12 - Registrar pressão do óleo lubrificante (BAR/PSI)",
+                "8.13 - Simulação proteção pressão óleo",
+                "8.14 - Simulação proteção temperatura",
+                "8.15 - Simulação proteção sobrevelocidade",
+                "8.16 - Simulação proteção nível d'água",
+                "8.17 - Avaliar ruídos anormais do motor/gerador",
+                "8.18 - Verificar emissão excessiva de fumaça do GMG",
+                "8.19 - Escala de Ringelmann - Avaliação de fumaça"
+            ]},
+            {section: "9.00 Medições com GMG em Carga", items:[
+                "9.01 - Simular falta da rede comercial",
+                "9.02 - Registrar tensão do gerador (VAB-VBC-VCA)",
+                "9.03 - Simular funcionamento horário de ponta",
+                "9.04 - Registrar frequência do gerador (HZ)",
+                "9.05 - Registrar corrente do gerador (A L1-L2-L3)",
+                "9.06 - Verificar leds ou lâmpadas de sinalização",
+                "9.07 - Verificar chaves seletoras",
+                "9.08 - Verificar divisão de carga entre grupos (KW)",
+                "9.09 - Registrar potência do gerador (KW-KVA-KVAR)",
+                "9.10 - Registrar fator de potência",
+                "9.11 - Registrar temperatura da água do motor"
+            ]}
+        ];
+
+        const relatorioDiv = document.getElementById('relatorio');
+
+        itemsData.forEach(sec => {
+            const sectionDiv = document.createElement('div');
+            sectionDiv.className = 'section';
+            sectionDiv.innerHTML = `<h2>${sec.section} <span class="score" id="score-${sec.section}">Pontuação: 0%</span></h2>`;
+            sec.items.forEach((item, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'item';
+                itemDiv.innerHTML = `
+                    <span>${item}</span>
+                    <select onchange="updateScore('${sec.section}', ${sec.items.length}, this)">
+                        <option value="N/A">N/A</option>
+                        <option value="Conforme">Conforme</option>
+                        <option value="Não Conforme">Não Conforme</option>
+                    </select>
+                `;
+                sectionDiv.appendChild(itemDiv);
+            });
+            const progressBar = document.createElement('div');
+            progressBar.className = 'progress-bar';
+            progressBar.innerHTML = `<div class="progress-fill" id="progress-${sec.section}"></div>`;
+            sectionDiv.appendChild(progressBar);
+
+            relatorioDiv.appendChild(sectionDiv);
+        });
+
+        function updateScore(sectionName, totalItems, selectElem){
+            const sectionDiv = selectElem.closest('.section');
+            const selects = sectionDiv.querySelectorAll('select');
+            let total = 0, counted = 0;
+            selects.forEach(sel => {
+                if(sel.value === "Conforme"){ total += 1; counted += 1; }
+                else if(sel.value === "Não Conforme"){ counted += 1; }
+            });
+            const score = counted === 0 ? 0 : Math.round((total / counted) * 100);
+            sectionDiv.querySelector('.score').textContent = `Pontuação: ${score}%`;
+            sectionDiv.querySelector(`#progress-${sectionName}`).style.width = score + '%';
+        }
+
+        function atualizarNomeEquipamento(){
+            const select = document.getElementById('equipamentoSelect');
+            const nomeDiv = document.getElementById('equipamentoNome');
+            nomeDiv.textContent = select.value ? select.value : '';
+        }
+    </script>
+
+    <!-- ASSINATURAS -->
+    <div class="signature-container">
+        <h2>Assinaturas</h2>
+        <div class="signature" id="signature1"></div>
+        <input type="text" placeholder="Nome do responsável" style="width: 100%; margin-bottom: 15px;">
+        <div id="extra-signatures"></div>
+        <button type="button" onclick="addSignature()">Adicionar assinatura</button>
+    </div>
+</div>
+
+<!-- BOTÃO GERAR PDF -->
+<button onclick="gerarPDF()">Gerar Relatório (PDF)</button>
+
+<!-- RODAPÉ -->
+<div class="footer">
+    <img src="logo.png" alt="Logo Grupo São Lourenço">
+    <span>Developed by: Matheus Santos | Data: <span id="footer-date"></span></span>
+</div>
+
+<script>
+document.getElementById('footer-date').textContent = new Date().toLocaleDateString();
+
+let signatureCount = 1;
+function addSignature() {
+    signatureCount++;
+    const container = document.getElementById('extra-signatures');
+    const div = document.createElement('div');
+    div.innerHTML = `
+        <div class="signature" id="signature${signatureCount}"></div>
+        <input type="text" placeholder="Nome do responsável" style="width: 100%; margin-bottom: 15px;">
+    `;
+    container.appendChild(div);
+    initSignature(`signature${signatureCount}`);
+}
+
+function initSignature(id) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 400;
+    canvas.height = 100;
+    const div = document.getElementById(id);
+    div.appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = 2;
+
+    let drawing = false;
+    canvas.addEventListener('pointerdown', e => {
+        drawing = true;
+        ctx.beginPath();
+        ctx.moveTo(e.offsetX, e.offsetY);
+    });
+    canvas.addEventListener('pointermove', e => {
+        if(drawing) ctx.lineTo(e.offsetX, e.offsetY), ctx.stroke();
+    });
+    canvas.addEventListener('pointerup', () => drawing = false);
+    canvas.addEventListener('pointerleave', () => drawing = false);
+}
+
+initSignature('signature1');
+
+function gerarPDF() {
+    const { jsPDF } = window.jspdf;
+    html2canvas(document.getElementById('relatorio'), { scale: 2 }).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save('relatorio_inspecao.pdf');
+    });
+}
+</script>
+</body>
+</html>
