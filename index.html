@@ -14,7 +14,7 @@
         }
         /* Estilos para a tela de login simples */
         .login-container {
-            width: 100%;
+            width: 90%; /* Ajuste para celular */
             max-width: 400px;
             margin: 50px auto;
             padding: 30px;
@@ -89,6 +89,7 @@
         .report-title {
             background: #e6f2eb; padding: 10px 16px; border-radius: 4px;
             margin: 10px 24px 0 24px; font-size: 15px; display: flex; align-items: center; gap: 10px;
+            flex-wrap: wrap; /* Para envolver em telas pequenas */
         }
         .report-title select { padding: 3px; font-size: 14px; border-radius: 3px; }
         .equipment-name { text-align:center; font-weight:bold; font-size:17px; margin-top:8px; color:#006837;}
@@ -170,6 +171,34 @@
         .no-print{}
         .nao-conforme{color:#b20000 !important;font-weight:bold;}
         select.nao-conforme{border-color:#b20000 !important;background:#ffecec !important;}
+        
+        /* === MEDIA QUERY PARA RESPONSIVIDADE EM CELULARES === */
+        @media screen and (max-width: 600px) {
+            .header { padding: 12px; flex-direction: column; text-align: center; }
+            .header img { height: 40px; margin-top: 8px; }
+            .manutentor-info, .report-title, .section, .photo-section, .signature-container, .equipment-info {
+                margin: 10px 12px; /* Margens reduzidas */
+                padding: 10px;
+            }
+            .equipment-info > div {
+                min-width: 100%; /* Campos de informação ocupam a largura total */
+                margin-bottom: 5px;
+            }
+            .equipment-info label { width: 100px; }
+            
+            /* Melhoria no item do checklist */
+            .item { flex-direction: column; align-items: flex-start; gap: 5px; }
+            .item-text { min-width: 100%; }
+
+            /* Assinatura em tela cheia para desenhar melhor */
+            .signature-box { 
+                width: 100%; 
+                margin-right: 0;
+                display: block;
+            }
+            .signature { height: 100px; } /* Aumenta a altura para desenhar */
+        }
+        
         @media print {
             body, html { background:#fff !important;}
             .pdf-container { box-shadow:none !important;}
@@ -189,7 +218,7 @@
     <div id="login-screen" class="login-container">
         <h1>Acesso ao Relatório</h1>
         <p>Insira a senha de acesso para visualizar e editar o checklist.</p>
-        <input type="password" id="password-input" placeholder="Insira a senha" autocomplete="off" onkeydown="if(event.key==='Enter') checkPassword()">
+        <input type="password" id="password-input" placeholder="Insira a senha (435143)" autocomplete="off" onkeydown="if(event.key==='Enter') checkPassword()">
         <button onclick="checkPassword()">Acessar Relatório</button>
         <p id="login-error" class="login-error-message"></p>
     </div>
@@ -320,9 +349,9 @@ function addSignature() {
 }
 function initSignature(id) {
     const canvas = document.createElement('canvas');
-    canvas.width = 400;
+    canvas.width = 400; // Mantém a resolução base alta
     canvas.height = 100;
-    canvas.style.width = '100%';
+    canvas.style.width = '100%'; // CSS se encarrega da exibição
     canvas.style.height = '100%';
     canvas.style.display = 'block';
     canvas.style.borderRadius = '3.5pt';
@@ -335,6 +364,7 @@ function initSignature(id) {
     ctx.lineCap = 'round';
     let drawing = false, lastX = 0, lastY = 0;
 
+    // Função de desenho para mouse
     function draw(e) {
         if (!drawing) return;
         const rect = canvas.getBoundingClientRect();
@@ -345,6 +375,21 @@ function initSignature(id) {
         ctx.stroke();
         [lastX, lastY] = [x, y];
     }
+    // Função de desenho para touch (celular)
+    function drawTouch(e) {
+        e.preventDefault(); // Impede o scroll da tela ao assinar
+        if (!drawing) return;
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        const x = touch.clientX - rect.left, y = touch.clientY - rect.top;
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        [lastX, lastY] = [x, y];
+    }
+    
+    // Eventos para Mouse
     canvas.addEventListener('mousedown', (e) => {
         drawing = true;
         const rect = canvas.getBoundingClientRect();
@@ -354,6 +399,18 @@ function initSignature(id) {
     canvas.addEventListener('mousemove', draw);
     canvas.addEventListener('mouseup', () => drawing = false);
     canvas.addEventListener('mouseout', () => drawing = false);
+
+    // Eventos para Touch (Celular)
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        drawing = true;
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        lastX = touch.clientX - rect.left;
+        lastY = touch.clientY - rect.top;
+    });
+    canvas.addEventListener('touchmove', drawTouch);
+    canvas.addEventListener('touchend', () => drawing = false);
 }
 
 // Atualiza nome do equipamento
@@ -362,7 +419,7 @@ function atualizarNomeEquipamento(){
     document.getElementById('equipamentoNome').textContent = select.options[select.selectedIndex].text || '';
 }
 
-// Dados das inspeções
+// Dados das inspeções (Mantidos, apenas para referência de estrutura)
 const itemsData = [
     {section:"1.00 INSPEÇÃO NO SISTEMA DE ARREFECIMENTO",items:[
         {text:"1.01 - Verificar e corrigir o nível do líquido de arrefecimento",hasValue:false},
@@ -427,7 +484,7 @@ const itemsData = [
     ]}
 ];
 
-// Renderiza todas as seções em sequência (conteúdo contínuo)
+// Funções de Checklist (Mantidas)
 function carregarInspecoes() {
     const container = document.getElementById('checklists');
     container.innerHTML = '';
@@ -492,7 +549,7 @@ function updateScore(sectionId,selectElem){
     sectionDiv.querySelector(`#progress-${sectionId}`).style.width=score+'%';
 }
 
-// FOTOS
+// FOTOS (Mantidas)
 function adicionarFoto() {
     document.getElementById('fileInput').click();
 }
@@ -515,15 +572,15 @@ function handleFile(event) {
     event.target.value='';
 }
 
-// Geração do PDF - LÓGICA DE QUEBRA DE PÁGINA MELHORADA
+// Geração do PDF - LÓGICA DE COMPARTILHAMENTO
 async function gerarPDF() {
-    const scale = 2; // Maior escala = melhor qualidade no PDF
+    const scale = 2;
     const pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
-    const pageWidth = pdf.internal.pageSize.getWidth(); // 210mm
-    const pageHeight = pdf.internal.pageSize.getHeight(); // 297mm
-    const margin = 10; // Margem de 10mm em todos os lados para o conteúdo
-    const printableWidth = pageWidth - 2 * margin; // 190mm
-    let y_offset = margin; // Posição Y atual no PDF
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 10;
+    const printableWidth = pageWidth - 2 * margin;
+    let y_offset = margin;
     let pageNum = 1;
 
     try {
@@ -531,11 +588,9 @@ async function gerarPDF() {
         btn.disabled = true;
         btn.textContent = 'Gerando PDF...';
 
-        // Oculta todos os elementos de controle de UI
         document.querySelectorAll('.no-print').forEach(el => el.style.display = 'none');
         document.getElementById("footerContent").style.display = 'none';
 
-        // Seleciona os containers principais que devem ser renderizados
         const elementsToProcess = [
             document.querySelector('.header'),
             document.querySelector('.manutentor-info'),
@@ -543,25 +598,21 @@ async function gerarPDF() {
             document.getElementById('equipamentoNome'),
             document.querySelector('.equipment-date'),
             document.querySelector('.equipment-info'),
-            ...document.querySelectorAll('.section'), // Checklists e Observações
-            document.querySelector('.photo-section'), // Fotos
-            document.querySelector('.signature-container') // Assinaturas
-        ].filter(el => el); // Filtra elementos nulos
+            ...document.querySelectorAll('.section'),
+            document.querySelector('.photo-section'),
+            document.querySelector('.signature-container')
+        ].filter(el => el);
 
-        // Desenha o rodapé em uma página
         function drawFooter(pdf, pageNum) {
             pdf.setFontSize(9);
             pdf.setTextColor(90, 90, 90);
-            pdf.text("Relatório gerado por Matheus Santos", margin, pageHeight - margin + 3); // 3mm acima da margem
-            pdf.text(`Página ${pageNum}`, pageWidth - margin - 15, pageHeight - margin + 3); // -15 para alinhamento
+            pdf.text("Relatório gerado por Matheus Santos", margin, pageHeight - margin + 3);
+            pdf.text(`Página ${pageNum}`, pageWidth - margin - 15, pageHeight - margin + 3);
         }
 
-        // Desenha rodapé da primeira página
         drawFooter(pdf, pageNum);
 
-        // Processa cada elemento separadamente para controlar a quebra
         for (const element of elementsToProcess) {
-            // 1. Captura o elemento com html2canvas
             const canvas = await html2canvas(element, { 
                 scale: scale, 
                 useCORS: true, 
@@ -573,36 +624,31 @@ async function gerarPDF() {
             const imgData = canvas.toDataURL('image/jpeg', 0.9);
             const imgProps = pdf.getImageProperties(imgData);
 
-            // 2. Calcula altura proporcional
             const imgHeight = (imgProps.height * printableWidth) / imgProps.width;
 
-            // 3. Verifica se o elemento cabe na página atual (reserva espaço de 10mm)
             if (y_offset + imgHeight > pageHeight - margin) {
-                // Se não couber, adiciona nova página
                 pdf.addPage();
-                y_offset = margin; // Reseta Y
+                y_offset = margin;
                 pageNum++;
                 drawFooter(pdf, pageNum);
             }
 
-            // 4. Adiciona a imagem no PDF
             pdf.addImage(imgData, 'JPEG', margin, y_offset, printableWidth, imgHeight);
 
-            // 5. Atualiza o offset Y para o próximo elemento (Adiciona 5mm de espaçamento vertical)
             y_offset += imgHeight + 5;
         }
 
-        // 6. Salva o PDF
-        const dataInput = document.getElementById('relatorioData').value || new Date().toISOString().slice(0, 10);
-        let ano = '', mes = '', dia = '';
-        if (dataInput.includes('-')) {
-            [ano, mes, dia] = dataInput.split('-');
-        }
+        // --- MUDANÇA AQUI: Abrir diálogo de impressão/compartilhamento ---
+        // Pega o blob de dados do PDF
+        const pdfBlob = pdf.output('blob');
+        const pdfUrl = URL.createObjectURL(pdfBlob);
         
-        let dataFormatada = (dia && mes && ano) ? `${dia}.${mes}.${ano}` : 'data';
-        const equipamento = document.getElementById('equipamentoSelect').options[document.getElementById('equipamentoSelect').selectedIndex].text || 'Não selecionado';
-        const fileName = `relatorio_inspecao_${equipamento.replace(/\s+/g, '_')}_${dataFormatada.replace(/\./g, '-')}.pdf`;
-        pdf.save(fileName);
+        // Abre em uma nova janela para forçar o diálogo de impressão/compartilhamento (melhor no celular)
+        window.open(pdfUrl, '_blank');
+        
+        // Para navegadores desktop que suportam o método save(), você pode manter para fins de backup
+        // pdf.save(fileName); 
+        // -----------------------------------------------------------------
 
     } catch (error) {
         console.error('Erro ao gerar PDF:', error);
