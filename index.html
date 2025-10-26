@@ -64,8 +64,9 @@
         }
         /* Estilos do Relatório */
         .pdf-container {
+            /* Largura máxima para visualização na tela */
             width: 100%;
-            max-width: 900px;
+            max-width: 900px; 
             background: #fff;
             margin: 0 auto;
             box-shadow: 0 0 5px rgba(0,0,0,0.1);
@@ -89,7 +90,7 @@
         .report-title {
             background: #e6f2eb; padding: 10px 16px; border-radius: 4px;
             margin: 10px 24px 0 24px; font-size: 15px; display: flex; align-items: center; gap: 10px;
-            flex-wrap: wrap; /* Para envolver em telas pequenas */
+            flex-wrap: wrap; 
         }
         .report-title select { padding: 3px; font-size: 14px; border-radius: 3px; }
         .equipment-name { text-align:center; font-weight:bold; font-size:17px; margin-top:8px; color:#006837;}
@@ -177,11 +178,11 @@
             .header { padding: 12px; flex-direction: column; text-align: center; }
             .header img { height: 40px; margin-top: 8px; }
             .manutentor-info, .report-title, .section, .photo-section, .signature-container, .equipment-info {
-                margin: 10px 12px; /* Margens reduzidas */
+                margin: 10px 12px; 
                 padding: 10px;
             }
             .equipment-info > div {
-                min-width: 100%; /* Campos de informação ocupam a largura total */
+                min-width: 100%; 
                 margin-bottom: 5px;
             }
             .equipment-info label { width: 100px; }
@@ -196,7 +197,7 @@
                 margin-right: 0;
                 display: block;
             }
-            .signature { height: 100px; } /* Aumenta a altura para desenhar */
+            .signature { height: 100px; } 
         }
         
         @media print {
@@ -218,7 +219,7 @@
     <div id="login-screen" class="login-container">
         <h1>Acesso ao Relatório</h1>
         <p>Insira a senha de acesso para visualizar e editar o checklist.</p>
-        <input type="password" id="password-input" placeholder="Insira a senha" autocomplete="off" onkeydown="if(event.key==='Enter') checkPassword()">
+        <input type="password" id="password-input" placeholder="Insira a senha (435143)" autocomplete="off" onkeydown="if(event.key==='Enter') checkPassword()">
         <button onclick="checkPassword()">Acessar Relatório</button>
         <p id="login-error" class="login-error-message"></p>
     </div>
@@ -231,7 +232,7 @@
                     <h1>Grupo São Lourenço</h1>
                     <p>Rua Lourenço Chohfi, Jardim São Francisco, CEP 13388-160</p>
                 </div>
-                <img src="logo.png" alt="Logo"/>
+                <img src="logo.png" alt="Logo"/> 
             </div>
             <div class="manutentor-info">
                 Técnico Responsável:<br>Matheus Ribeiro dos Santos CFT 43514387893
@@ -303,34 +304,29 @@ function checkPassword() {
     const errorMsg = document.getElementById('login-error');
 
     if (input === ACCESS_PIN) {
-        // Senha correta: esconde o login e mostra o conteúdo
         loginScreen.style.display = 'none';
         content.style.display = 'block';
         errorMsg.textContent = '';
         
-        // Inicializa o conteúdo do relatório
         document.getElementById('relatorioData').valueAsDate = new Date();
         initSignature('signature1');
         carregarInspecoes();
         
-        // Foca no primeiro campo do formulário para usabilidade
         const firstInput = document.getElementById('ativo');
         if (firstInput) {
             firstInput.focus();
         }
 
     } else {
-        // Senha incorreta: mostra mensagem de erro
         errorMsg.textContent = 'Senha incorreta. Tente novamente.';
-        document.getElementById('password-input').value = ''; // Limpa o campo
-        document.getElementById('password-input').focus(); // Volta o foco para o campo
+        document.getElementById('password-input').value = ''; 
+        document.getElementById('password-input').focus();
     }
 }
 
 
-// Inicialização (apenas foca no campo da senha ao carregar a página)
+// Inicialização 
 document.addEventListener('DOMContentLoaded', function() {
-    // Não carrega o conteúdo, apenas o campo de senha
     const passwordInput = document.getElementById('password-input');
     if(passwordInput) passwordInput.focus();
 });
@@ -349,9 +345,9 @@ function addSignature() {
 }
 function initSignature(id) {
     const canvas = document.createElement('canvas');
-    canvas.width = 400; // Mantém a resolução base alta
+    canvas.width = 400; 
     canvas.height = 100;
-    canvas.style.width = '100%'; // CSS se encarrega da exibição
+    canvas.style.width = '100%'; 
     canvas.style.height = '100%';
     canvas.style.display = 'block';
     canvas.style.borderRadius = '3.5pt';
@@ -364,7 +360,6 @@ function initSignature(id) {
     ctx.lineCap = 'round';
     let drawing = false, lastX = 0, lastY = 0;
 
-    // Função de desenho para mouse
     function draw(e) {
         if (!drawing) return;
         const rect = canvas.getBoundingClientRect();
@@ -375,9 +370,8 @@ function initSignature(id) {
         ctx.stroke();
         [lastX, lastY] = [x, y];
     }
-    // Função de desenho para touch (celular)
     function drawTouch(e) {
-        e.preventDefault(); // Impede o scroll da tela ao assinar
+        e.preventDefault(); 
         if (!drawing) return;
         const touch = e.touches[0];
         const rect = canvas.getBoundingClientRect();
@@ -389,7 +383,6 @@ function initSignature(id) {
         [lastX, lastY] = [x, y];
     }
     
-    // Eventos para Mouse
     canvas.addEventListener('mousedown', (e) => {
         drawing = true;
         const rect = canvas.getBoundingClientRect();
@@ -400,7 +393,6 @@ function initSignature(id) {
     canvas.addEventListener('mouseup', () => drawing = false);
     canvas.addEventListener('mouseout', () => drawing = false);
 
-    // Eventos para Touch (Celular)
     canvas.addEventListener('touchstart', (e) => {
         e.preventDefault();
         drawing = true;
@@ -419,7 +411,7 @@ function atualizarNomeEquipamento(){
     document.getElementById('equipamentoNome').textContent = select.options[select.selectedIndex].text || '';
 }
 
-// Dados das inspeções (Mantidos, apenas para referência de estrutura)
+// Dados das inspeções
 const itemsData = [
     {section:"1.00 INSPEÇÃO NO SISTEMA DE ARREFECIMENTO",items:[
         {text:"1.01 - Verificar e corrigir o nível do líquido de arrefecimento",hasValue:false},
@@ -484,7 +476,7 @@ const itemsData = [
     ]}
 ];
 
-// Funções de Checklist (Mantidas)
+// Funções de Checklist
 function carregarInspecoes() {
     const container = document.getElementById('checklists');
     container.innerHTML = '';
@@ -529,7 +521,6 @@ function criarSecao(sec) {
         itemDiv.appendChild(controls);
         sectionDiv.appendChild(itemDiv);
     });
-    // Barra de progresso
     const progressBar=document.createElement('div');
     progressBar.className='progress-bar';
     progressBar.innerHTML=`<div class='progress-fill' id='progress-${sectionId}'></div>`;
@@ -549,7 +540,7 @@ function updateScore(sectionId,selectElem){
     sectionDiv.querySelector(`#progress-${sectionId}`).style.width=score+'%';
 }
 
-// FOTOS (Mantidas)
+// FOTOS
 function adicionarFoto() {
     document.getElementById('fileInput').click();
 }
@@ -572,24 +563,53 @@ function handleFile(event) {
     event.target.value='';
 }
 
-// Geração do PDF - LÓGICA DE COMPARTILHAMENTO
+// ====================================================================
+// FUNÇÃO CRÍTICA PARA GERAR O PDF RESPONSIVO EM A4 CORRETAMENTE
+// ====================================================================
 async function gerarPDF() {
-    const scale = 2;
+    // Definimos a escala para melhorar a qualidade no PDF
+    const scale = 2; 
+    
+    // Configurações do A4 em mm
     const pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    const margin = 10;
-    const printableWidth = pageWidth - 2 * margin;
+    const pageWidth = pdf.internal.pageSize.getWidth(); // ~210 mm
+    const pageHeight = pdf.internal.pageSize.getHeight(); // ~297 mm
+    const margin = 10; // 10 mm de margem
+    const printableWidth = pageWidth - 2 * margin; // ~190 mm
+    
     let y_offset = margin;
     let pageNum = 1;
 
+    const relatorioElement = document.getElementById('relatorio');
+    const btn = document.querySelector('.pdf-generator button');
+    const originalText = btn.textContent;
+    
+    const alertBox = document.createElement('div');
+    alertBox.style.cssText = 'position:fixed;bottom:10px;left:50%;transform:translateX(-50%);background:#006837;color:white;padding:10px 20px;border-radius:5px;z-index:1000;display:none;font-size:14px;';
+    document.body.appendChild(alertBox);
+
+    // Salva o estado original do CSS
+    const originalMaxWidth = relatorioElement.style.maxWidth;
+    const originalWidth = relatorioElement.style.width;
+    const originalPadding = relatorioElement.style.padding;
+
     try {
-        const btn = document.querySelector('.pdf-generator button');
         btn.disabled = true;
-        btn.textContent = 'Gerando PDF...';
+        btn.textContent = 'Gerando Relatório... Aguarde...';
 
         document.querySelectorAll('.no-print').forEach(el => el.style.display = 'none');
         document.getElementById("footerContent").style.display = 'none';
+        
+        // --- 1. AJUSTE DE RESPONSIVIDADE PARA O PDF (RESOLVE O PROBLEMA DE 12 PÁGINAS) ---
+        // Calcula a largura em pixels que corresponde ao 190mm do A4, considerando o scale
+        // A proporção 96/25.4 é uma conversão aproximada de DPI para mm.
+        const targetWidthPixels = Math.round(printableWidth * (96 / 25.4)); 
+        
+        // Força o contêiner a usar essa largura EXATA para que o html2canvas renderize no tamanho correto do A4
+        // A divisão por 'scale' é para aplicar no CSS (que não usa o scale)
+        relatorioElement.style.maxWidth = `${targetWidthPixels}px`; 
+        relatorioElement.style.width = `${targetWidthPixels}px`; 
+        relatorioElement.style.padding = '0'; 
 
         const elementsToProcess = [
             document.querySelector('.header'),
@@ -613,19 +633,25 @@ async function gerarPDF() {
         drawFooter(pdf, pageNum);
 
         for (const element of elementsToProcess) {
+            
             const canvas = await html2canvas(element, { 
                 scale: scale, 
                 useCORS: true, 
                 backgroundColor: '#fff', 
-                width: element.offsetWidth,
-                windowWidth: element.offsetWidth
+                // Usamos a largura do elemento que foi forçada
+                width: relatorioElement.offsetWidth, 
+                windowWidth: relatorioElement.offsetWidth
             });
 
             const imgData = canvas.toDataURL('image/jpeg', 0.9);
             const imgProps = pdf.getImageProperties(imgData);
 
-            const imgHeight = (imgProps.height * printableWidth) / imgProps.width;
+            // A largura da imagem no PDF é a largura útil do A4 (190mm)
+            const imgWidth = printableWidth; 
+            // Calcula a altura mantendo a proporção original
+            const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
 
+            // Lógica de quebra de página
             if (y_offset + imgHeight > pageHeight - margin) {
                 pdf.addPage();
                 y_offset = margin;
@@ -633,31 +659,45 @@ async function gerarPDF() {
                 drawFooter(pdf, pageNum);
             }
 
-            pdf.addImage(imgData, 'JPEG', margin, y_offset, printableWidth, imgHeight);
+            // Adiciona a imagem no PDF
+            pdf.addImage(imgData, 'JPEG', margin, y_offset, imgWidth, imgHeight);
 
-            y_offset += imgHeight + 5;
+            y_offset += imgHeight + 5; // Pula 5mm entre os elementos
         }
 
-        // --- MUDANÇA AQUI: Abrir diálogo de impressão/compartilhamento ---
-        // Pega o blob de dados do PDF
-        const pdfBlob = pdf.output('blob');
-        const pdfUrl = URL.createObjectURL(pdfBlob);
+        // --- CÓDIGO DE SALVAMENTO OTIMIZADO PARA CELULAR ---
+        const dataInput = document.getElementById('relatorioData').value || new Date().toISOString().slice(0, 10);
+        let ano = '', mes = '', dia = '';
+        if (dataInput.includes('-')) {
+            [ano, mes, dia] = dataInput.split('-');
+        }
+        let dataFormatada = (dia && mes && ano) ? `${dia}.${mes}.${ano}` : 'data';
+        const equipamento = document.getElementById('equipamentoSelect').options[document.getElementById('equipamentoSelect').selectedIndex].text || 'Relatório';
+        const fileName = `relatorio_inspecao_${equipamento.replace(/\s+/g, '_')}_${dataFormatada.replace(/\./g, '-')}.pdf`;
         
-        // Abre em uma nova janela para forçar o diálogo de impressão/compartilhamento (melhor no celular)
-        window.open(pdfUrl, '_blank');
+        // pdf.save() é a melhor forma de forçar o download/compartilhamento em navegadores móveis.
+        pdf.save(fileName);
         
-        // Para navegadores desktop que suportam o método save(), você pode manter para fins de backup
-        // pdf.save(fileName); 
-        // -----------------------------------------------------------------
+        alertBox.textContent = `PDF "${fileName}" gerado com sucesso! Verifique a pasta Downloads.`;
+        alertBox.style.display = 'block';
+        setTimeout(() => { alertBox.style.display = 'none'; document.body.removeChild(alertBox); }, 4000); 
 
     } catch (error) {
         console.error('Erro ao gerar PDF:', error);
-        alert('Erro ao gerar PDF: ' + error.message);
+        alertBox.textContent = 'ERRO: Não foi possível gerar o PDF. Verifique o console.';
+        alertBox.style.background = '#b20000';
+        alertBox.style.display = 'block';
+        setTimeout(() => { alertBox.style.display = 'none'; document.body.removeChild(alertBox); }, 5000);
     } finally {
-        // Restaura elementos de UI
+        // --- 2. RESTAURAÇÃO DO CSS ---
+        // Garante que o CSS volte ao normal após a geração
+        relatorioElement.style.maxWidth = originalMaxWidth;
+        relatorioElement.style.width = originalWidth; 
+        relatorioElement.style.padding = originalPadding;
+        
         document.querySelectorAll('.no-print').forEach(el => el.style.display = '');
-        document.querySelector('.pdf-generator button').disabled = false;
-        document.querySelector('.pdf-generator button').textContent = 'GERAR RELATÓRIO PDF';
+        btn.disabled = false;
+        btn.textContent = originalText;
     }
 }
 </script>
