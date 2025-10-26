@@ -12,17 +12,64 @@
             margin: 0; padding: 0;
             background: #f5f5f5;
         }
-        /* ATENÇÃO: Removi position: relative e padding-bottom para simplificar a captura para PDF */
+        /* Estilos para a tela de login simples */
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 30px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .login-container h1 {
+            color: #006837;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .login-container p {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 20px;
+        }
+        #password-input {
+            width: 90%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            text-align: center;
+        }
+        .login-container button {
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            background: #006837;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .login-container button:hover {
+            background: #00502a;
+        }
+        .login-error-message {
+            color: #b20000;
+            margin-top: 15px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        /* Estilos do Relatório */
         .pdf-container {
             width: 100%;
             max-width: 900px;
             background: #fff;
             margin: 0 auto;
             box-shadow: 0 0 5px rgba(0,0,0,0.1);
-            /* position: relative;  <-- REMOVIDO */
-            /* padding-bottom: 60px; <-- REMOVIDO */
         }
-        /* A partir daqui, o CSS original, com foco em: */
         .header {
             display: flex; align-items: center; justify-content: space-between;
             background: #006837; color: #fff;
@@ -54,15 +101,10 @@
         .equipment-info > div { display:flex; align-items:center; min-width:48%; flex:1;}
         .equipment-info label { width:110px; font-weight:bold; margin-right:6px; font-size:13px;}
         .equipment-info input { flex:1; padding:4px; border-radius:3px; font-size:13px; border:1px solid #ddd;}
-
-        /* Classe de quebra de página: esta é a chave para o CSS-only, mas será usada como fallback/ajuda */
         .section, .photo-section, .signature-container {
-             /* page-break-inside: avoid; <-- MANTIDO COMO AJUDA, MAS A LÓGICA JS É PRIORITÁRIA */
-             /* O page-break-before: always; será adicionado via JS se a seção estiver muito baixa na página. */
              background:#fff; margin:10px 24px; border-radius:4px;
              padding:12px; border:1px solid #ddd;
         }
-
         .section h2 {
             padding:7px; border-radius:3px;
             font-size:15px; background:#f8f8f8;
@@ -118,7 +160,7 @@
         .signature-name { width :100%;margin-top :6pt;padding :4pt;border-radius :3pt;font-size :12pt;border-color:#ddd;border-width:.7pt;min-height :28pt;}
         /* Observações */
         .section textarea {width :100%;min-height :60pt;padding :8pt;border-radius :3pt;font-size :12pt;border :1pt solid #ddd;}
-        /* Rodapé - MANTIDO como referência, mas será desenhado pelo jsPDF */
+        /* Rodapé - Desenhado pelo jsPDF */
         .footer-content{ display:none; }
         /* PDF botão */
         .pdf-generator{text-align:center;margin-top :18pt;}
@@ -136,7 +178,6 @@
             button { display:none !important;}
             canvas { border:none !important;}
             .signature { border:none !important;}
-            /* RODAPÉ: no print é diferente de no PDF (jsPDF vai desenhar o rodapé) */
             .footer-content{display:none !important;}
             @page {margin-bottom :40pt;}
         }
@@ -144,81 +185,128 @@
 </head>
 <body>
 <div id="app">
-    <div id="relatorio" class="pdf-container">
-        <div class="header">
-            <div class="header-content">
-                <h1>Grupo São Lourenço</h1>
-                <p>Rua Lourenço Chohfi, Jardim São Francisco, CEP 13388-160</p>
+
+    <div id="login-screen" class="login-container">
+        <h1>Acesso ao Relatório</h1>
+        <p>Insira a senha de acesso para visualizar e editar o checklist.</p>
+        <input type="password" id="password-input" placeholder="Insira a senha" autocomplete="off" onkeydown="if(event.key==='Enter') checkPassword()">
+        <button onclick="checkPassword()">Acessar Relatório</button>
+        <p id="login-error" class="login-error-message"></p>
+    </div>
+
+    <div id="pdf-app-content" style="display:none;">
+
+        <div id="relatorio" class="pdf-container">
+            <div class="header">
+                <div class="header-content">
+                    <h1>Grupo São Lourenço</h1>
+                    <p>Rua Lourenço Chohfi, Jardim São Francisco, CEP 13388-160</p>
+                </div>
+                <img src="logo.png" alt="Logo"/>
             </div>
-<img src="logo.png" alt="Logo"/>
-        </div>
-        <div class="manutentor-info">
-            Técnico Responsável:<br>Matheus Ribeiro dos Santos CFT 43514387893
-        </div>
-        <div class="report-title">
-            <span>Relatório de Inspeção no Equipamento:</span>
-            <select id="equipamentoSelect" onchange="atualizarNomeEquipamento()">
-                <option value="">Selecione</option>
-                <option value="Gerador_400_Kva" selected>Gerador 400 Kva</option>
-            </select>
-        </div>
-        <div id="equipamentoNome" class="equipment-name">Gerador 400 Kva</div>
-        <div class="equipment-date">
-            <label for="relatorioData"><strong>Data:</strong></label>
-            <input type="date" id="relatorioData" class="date-input">
-        </div>
-        <div class="equipment-info">
-            <div><label>Ativo:</label><input type="text" id="ativo"></div>
-            <div><label>Nome:</label><input type="text" id="nome"></div>
-            <div><label>Marca:</label><input type="text" id="marca"></div>
-            <div><label>Modelo:</label><input type="text" id="modelo"></div>
-            <div><label>Patrimônio / Nº Série:</label><input type="text" id="patrimonio"></div>
-        </div>
-
-        <div id="checklists"></div>
-
-        <div class="photo-section">
-            <h2>Fotos da Inspeção
-                <button type="button" onclick="adicionarFoto()" class="no-print" style="font-size:.9em;padding:.25em .7em;margin-left:.7em;">Adicionar Foto</button>
-            </h2>
-            <div class="photo-container" id="photoContainer"></div>
-            <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="handleFile(event)">
-        </div>
-
-        <div class="section">
-            <h2>Observações</h2>
-            <textarea id="observacoes" placeholder="Escreva observações finais..."></textarea>
-        </div>
-
-        <div class="signature-container">
-            <h2>Assinaturas</h2>
-            <div class="signature-box">
-                <div class="signature" id="signature1"></div>
-                <textarea class="signature-name" id="responsavel1" placeholder="Nome do responsável" rows="1">Matheus Ribeiro dos Santos</textarea>
+            <div class="manutentor-info">
+                Técnico Responsável:<br>Matheus Ribeiro dos Santos CFT 43514387893
             </div>
-            <div id="extra-signatures"></div>
-            <button type="button" class="no-print" onclick="addSignature()" style="font-size :12pt;padding :6pt 12pt;">Adicionar assinatura</button>
-        </div>
+            <div class="report-title">
+                <span>Relatório de Inspeção no Equipamento:</span>
+                <select id="equipamentoSelect" onchange="atualizarNomeEquipamento()">
+                    <option value="">Selecione</option>
+                    <option value="Gerador_400_Kva" selected>Gerador 400 Kva</option>
+                </select>
+            </div>
+            <div id="equipamentoNome" class="equipment-name">Gerador 400 Kva</div>
+            <div class="equipment-date">
+                <label for="relatorioData"><strong>Data:</strong></label>
+                <input type="date" id="relatorioData" class="date-input">
+            </div>
+            <div class="equipment-info">
+                <div><label>Ativo:</label><input type="text" id="ativo"></div>
+                <div><label>Nome:</label><input type="text" id="nome"></div>
+                <div><label>Marca:</label><input type="text" id="marca"></div>
+                <div><label>Modelo:</label><input type="text" id="modelo"></div>
+                <div><label>Patrimônio / Nº Série:</label><input type="text" id="patrimonio"></div>
+            </div>
 
-        <div class="footer-content" id="footerContent">
-            <span>Relatório gerado por Matheus Santos</span>
-            <span id="footer-pagina">Página <span id='pageNum'>1</span></span>
-        </div>
+            <div id="checklists"></div>
 
-    </div><div class="pdf-generator no-print">
+            <div class="photo-section">
+                <h2>Fotos da Inspeção
+                    <button type="button" onclick="adicionarFoto()" class="no-print" style="font-size:.9em;padding:.25em .7em;margin-left:.7em;">Adicionar Foto</button>
+                </h2>
+                <div class="photo-container" id="photoContainer"></div>
+                <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="handleFile(event)">
+            </div>
+
+            <div class="section">
+                <h2>Observações</h2>
+                <textarea id="observacoes" placeholder="Escreva observações finais..."></textarea>
+            </div>
+
+            <div class="signature-container">
+                <h2>Assinaturas</h2>
+                <div class="signature-box">
+                    <div class="signature" id="signature1"></div>
+                    <textarea class="signature-name" id="responsavel1" placeholder="Nome do responsável" rows="1">Matheus Ribeiro dos Santos</textarea>
+                </div>
+                <div id="extra-signatures"></div>
+                <button type="button" class="no-print" onclick="addSignature()" style="font-size :12pt;padding :6pt 12pt;">Adicionar assinatura</button>
+            </div>
+
+            <div class="footer-content" id="footerContent">
+                <span>Relatório gerado por Matheus Santos</span>
+                <span id="footer-pagina">Página <span id='pageNum'>1</span></span>
+            </div>
+
+        </div></div><div class="pdf-generator no-print">
         <button onclick="gerarPDF()">GERAR RELATÓRIO PDF</button>
     </div>
 </div>
 
 <script>
-// Inicialização
+// VARIÁVEL DE SENHA - DEFINIDA COMO 435143
+const ACCESS_PIN = '435143'; 
+
+// Função que verifica a senha e exibe/oculta o conteúdo
+function checkPassword() {
+    const input = document.getElementById('password-input').value;
+    const loginScreen = document.getElementById('login-screen');
+    const content = document.getElementById('pdf-app-content');
+    const errorMsg = document.getElementById('login-error');
+
+    if (input === ACCESS_PIN) {
+        // Senha correta: esconde o login e mostra o conteúdo
+        loginScreen.style.display = 'none';
+        content.style.display = 'block';
+        errorMsg.textContent = '';
+        
+        // Inicializa o conteúdo do relatório
+        document.getElementById('relatorioData').valueAsDate = new Date();
+        initSignature('signature1');
+        carregarInspecoes();
+        
+        // Foca no primeiro campo do formulário para usabilidade
+        const firstInput = document.getElementById('ativo');
+        if (firstInput) {
+            firstInput.focus();
+        }
+
+    } else {
+        // Senha incorreta: mostra mensagem de erro
+        errorMsg.textContent = 'Senha incorreta. Tente novamente.';
+        document.getElementById('password-input').value = ''; // Limpa o campo
+        document.getElementById('password-input').focus(); // Volta o foco para o campo
+    }
+}
+
+
+// Inicialização (apenas foca no campo da senha ao carregar a página)
 document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('relatorioData').valueAsDate = new Date();
-    initSignature('signature1');
-    carregarInspecoes();
+    // Não carrega o conteúdo, apenas o campo de senha
+    const passwordInput = document.getElementById('password-input');
+    if(passwordInput) passwordInput.focus();
 });
 
-// [ Código de Assinaturas, Atualização de Nome de Equipamento, Dados e Renderização de Checklists (sem alterações) ]
+// Assinaturas
 let signatureCount = 1;
 function addSignature() {
     signatureCount++;
@@ -274,7 +362,7 @@ function atualizarNomeEquipamento(){
     document.getElementById('equipamentoNome').textContent = select.options[select.selectedIndex].text || '';
 }
 
-// Dados das inspeções (SEM ALTERAÇÕES AQUI)
+// Dados das inspeções
 const itemsData = [
     {section:"1.00 INSPEÇÃO NO SISTEMA DE ARREFECIMENTO",items:[
         {text:"1.01 - Verificar e corrigir o nível do líquido de arrefecimento",hasValue:false},
@@ -445,7 +533,6 @@ async function gerarPDF() {
 
         // Oculta todos os elementos de controle de UI
         document.querySelectorAll('.no-print').forEach(el => el.style.display = 'none');
-        // Oculta o rodapé que é desenhado pelo jsPDF
         document.getElementById("footerContent").style.display = 'none';
 
         // Seleciona os containers principais que devem ser renderizados
@@ -510,10 +597,6 @@ async function gerarPDF() {
         let ano = '', mes = '', dia = '';
         if (dataInput.includes('-')) {
             [ano, mes, dia] = dataInput.split('-');
-        } else {
-             // Tenta DD/MM/AAAA se for o caso
-            const parts = dataInput.split('/');
-            if (parts.length === 3) [dia, mes, ano] = parts;
         }
         
         let dataFormatada = (dia && mes && ano) ? `${dia}.${mes}.${ano}` : 'data';
